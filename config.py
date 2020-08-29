@@ -1,0 +1,1 @@
+params = {"TOKEN":"NzQ5MTgwMTE4NzUyMDM0ODY3.X0oOWw.LKeiBgUdJeZ-6cUjOkt19lNBLDI","PREF":"=","ID":"https://discordapp.com/oauth2/authorize?&client_id=749180118752034867&scope=bot&permissions=2048","NAME":"Fun Bot"}
