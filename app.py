@@ -6,17 +6,19 @@ import discord
 from discord.ext import commands
 from fuzzywuzzy import fuzz
 from flask import Flask
+from threading import Thread
 
 app = Flask(__name__)
 
 @app.route('/')
 def index():
     return('Bot is started.')
-app.run()
 
 #Imports
 
 sended = False
+
+bot = commands.Bot(command_prefix=config.params['PREF'])
 
 #Function for search random images
 def randImage(search):
@@ -28,9 +30,6 @@ def randImage(search):
         return res
     else:
         randImage(search)
-
-#Discord bot
-bot = commands.Bot(command_prefix=config.params['PREF'])
 
 #Command for search the images
 @bot.command(description="Команда для поиска изображений")
@@ -88,4 +87,16 @@ async def add_talk_pattern(ctx,pattern,*reaction):
     file.close()
     await ctx.send("Паттерн успешно добавлен.")
 
-bot.run(config.params['TOKEN'])
+def run_bot():
+    bot.run(config.params['TOKEN'])
+
+def run_server():
+    app.run()
+
+discord_bot = Thread(target=run_bot)
+server = Thread(target=run_server)
+discord_bot.start()
+server.start()
+discord_bot.join()
+server.join()
+
