@@ -3,5 +3,4 @@ requests==2.23.0
 bs4==0.0.1
 discord==1.0.1
 fuzzywuzzy==0.18.0
-Flask==1.1.2
 

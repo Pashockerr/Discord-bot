@@ -5,13 +5,6 @@ import config
 import discord
 from discord.ext import commands
 from fuzzywuzzy import fuzz
-from flask import Flask
-
-app = Flask(__name__)
-
-@app.route('/')
-def index():
-    return('Bot is started.')
 
 #Imports
 
