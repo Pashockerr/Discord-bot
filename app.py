@@ -5,6 +5,13 @@ import config
 import discord
 from discord.ext import commands
 from fuzzywuzzy import fuzz
+from flask import Flask
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return('Bot is started.')
 
 #Imports
 
@@ -56,7 +63,7 @@ async def talk(ctx,*phrase1):
     from talk_patterns import phrases
     global sended
     phrase = ''
-    for i iт phrase1:
+    for i in phrase1:
         phrase += i
     for pattern in phrases:
         if fuzz.partial_ratio(pattern[0],phrase) >= 70:
@@ -80,5 +87,5 @@ async def add_talk_pattern(ctx,pattern,*reaction):
     file.close()
     await ctx.send("Паттерн успешно добавлен.")
 
-print('Bot started')
+app.run()
 bot.run(config.params['TOKEN'])
