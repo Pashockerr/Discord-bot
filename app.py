@@ -12,6 +12,7 @@ app = Flask(__name__)
 @app.route('/')
 def index():
     return('Bot is started.')
+app.run()
 
 #Imports
 
@@ -87,5 +88,4 @@ async def add_talk_pattern(ctx,pattern,*reaction):
     file.close()
     await ctx.send("Паттерн успешно добавлен.")
 
-app.run()
 bot.run(config.params['TOKEN'])
