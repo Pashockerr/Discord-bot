@@ -6,7 +6,6 @@ import discord
 from discord.ext import commands
 from fuzzywuzzy import fuzz
 from flask import Flask
-from threading import Thread
 
 app = Flask(__name__)
 
@@ -86,17 +85,4 @@ async def add_talk_pattern(ctx,pattern,*reaction):
     file.write('phrases = '+str(phrases))
     file.close()
     await ctx.send("Паттерн успешно добавлен.")
-
-def run_bot():
-    bot.run(config.params['TOKEN'])
-
-def run_server():
-    app.run()
-
-discord_bot = Thread(target=run_bot)
-server = Thread(target=run_server)
-discord_bot.start()
-server.start()
-discord_bot.join()
-server.join()
-
+bot.run(config.params['TOKEN'])
