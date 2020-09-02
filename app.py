@@ -5,10 +5,21 @@ import config
 import discord
 from discord.ext import commands
 from fuzzywuzzy import fuzz
-
+import filter
+import Levenshtein
+import sqlite3
 #Imports
 
+#Connect sqlite3 database
+connection = sqlite3.connect("patterns.db")
+#Set cursor
+cursor = connection.cursor()
+#Create the table
+#cursor.execute("CREATE TABLE patterns(phrase text, answ1 text, answ2 text, answ3 text)")
+
 sended = False
+
+header = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:76.0) Gecko/20100101 Firefox/76.0'}
 
 bot = commands.Bot(command_prefix=config.params['PREF'])
 
@@ -25,9 +36,16 @@ def randImage(search):
 
 #Command for search the images
 @bot.command(description="Команда для поиска изображений")
-async def get_image(ctx,word):
-    link = randImage(word)
-    await ctx.send(str(link))
+async def image(ctx,word):
+    badword = False
+    for word1 in filter.words:
+        if fuzz.partial_ratio(word,word1) >= 50:
+            badword = True
+    if badword:
+        await ctx.send("Обнаружено запрещенное слово, запрос отклонён.")
+    else:
+        link = randImage(word)
+        await ctx.send(link)
 
 #Command for help
 @bot.command(description = 'Описание - введи эту команду для помощи')
@@ -51,31 +69,49 @@ async def spamirka(ctx,word,colichestvo):
     await ctx.send(text)
 
 @bot.command(description='Поболтай с ботом')
-async def talk(ctx,*phrase1):
-    from talk_patterns import phrases
-    global sended
-    phrase = ''
-    for i in phrase1:
-        phrase += i
-    for pattern in phrases:
-        if fuzz.partial_ratio(pattern[0],phrase) >= 70:
-            await ctx.send(pattern[random.randint(1,len(pattern)-1)])
-            sended = True
+async def talk(ctx,phrase1):
+    patterns = cursor.execute("SELECT * FROM patterns")
+    patterns = cursor.fetchall()
+    answers = []
+    answered = False
+    for pattern in patterns:
+        if fuzz.partial_ratio(pattern[0],phrase1) >= 70:
+            for i in range(1,3):
+                answers.append(pattern[i])
+            await ctx.send(random.choice(answers))
+            answered = True
             break
-    if sended == False:
-        await ctx.send('Сори, я не знаю что тебе ответить.')
-    sended = False
+    if answered == False:
+        await ctx.send("Сорян, я не знаю что тебе ответить.")
 
 #Command for add user talk patterns
 @bot.command(description="Научи бота говорить")
-async def add_talk_pattern(ctx,pattern,*reaction):
-    from talk_patterns import phrases
-    to_append = [pattern]
-    for reaction1 in reaction:
-        to_append.append(reaction1)
-    phrases.append(to_append)
-    file = open('talk_patterns.py','w',encoding="utf8")
-    file.write('phrases = '+str(phrases))
-    file.close()
+async def add_talk_pattern(ctx,pattern,answ1,answ2,answ3):
+    cursor.execute("INSERT INTO patterns VALUES('"+pattern+"','"+answ1+"','"+answ2+"','"+answ3+"')")
+    connection.commit()
     await ctx.send("Паттерн успешно добавлен.")
+
+#Command for debug
+@bot.command()
+async def debug_talkPatterns_output_printTalkPatterns(ctx):
+    cursor.execute("SELECT * FROM patterns")
+    await ctx.send(cursor.fetchall())
+
+@bot.command(pass_context=True)
+async def music(ctx, url):
+    channel = config.params['VoiceChannelId']
+    await channel.connect()
+    player = await VoiceChannel.create_ytdl_player(url)
+    player.start()
+
+@bot.command()
+async def word(ctx,word,symbol):
+    from pictures import letters
+    for letter in word.lower():
+        try:
+            await ctx.send(letters[letter].format(symbol))
+        except KeyError:
+            await ctx.send("Символ не найден.")
+
 bot.run(config.params['TOKEN'])
+connection.close()
